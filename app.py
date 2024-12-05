@@ -46,9 +46,9 @@ game_template = """
     <h2>Guess the number between 1 and 100!</h2>
     <form method="POST">
         <input type="number" name="guess" required>
-        <input type="hidden" name="attempts" value="{{ attempts }}">
         <button type="submit">Guess</button>
     </form>
+    <p>Attempts: {{ attempts }}</p>
     <p>{{ feedback }}</p>
     {% if guessed_correctly %}
         <p><a href="/">Play Again</a></p>
@@ -59,4 +59,3 @@ game_template = """
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
