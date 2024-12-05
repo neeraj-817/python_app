@@ -1,30 +1,42 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, session
 import random
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # Replace with a more secure key
 
 @app.route('/', methods=['GET', 'POST'])
 def guess_number_game():
-    number_to_guess = random.randint(1, 100)
-    attempts = 0
+    # Initialize or retrieve the number to guess and attempts from the session
+    if 'number_to_guess' not in session:
+        session['number_to_guess'] = random.randint(1, 100)
+        session['attempts'] = 0
+
+    number_to_guess = session['number_to_guess']
+    attempts = session['attempts']
     guessed_correctly = False
+    feedback = ""
 
     if request.method == 'POST':
-        user_guess = int(request.form['guess'])
-        attempts = int(request.form['attempts'])
-        attempts += 1
+        try:
+            user_guess = int(request.form['guess'])
+            attempts += 1
+            session['attempts'] = attempts  # Update the attempt count in the session
 
-        if user_guess < number_to_guess:
-            feedback = "Too low! Try again."
-        elif user_guess > number_to_guess:
-            feedback = "Too high! Try again."
-        else:
-            guessed_correctly = True
-            feedback = f"Congratulations! You guessed the number in {attempts} attempts."
+            if user_guess < number_to_guess:
+                feedback = "Too low! Try again."
+            elif user_guess > number_to_guess:
+                feedback = "Too high! Try again."
+            else:
+                guessed_correctly = True
+                feedback = f"Congratulations! You guessed the number in {attempts} attempts."
+                # Reset game if guessed correctly
+                session.pop('number_to_guess', None)
+                session.pop('attempts', None)
 
-        return render_template_string(game_template, feedback=feedback, attempts=attempts, guessed_correctly=guessed_correctly)
-    else:
-        return render_template_string(game_template, feedback="Enter a guess!", attempts=0, guessed_correctly=False)
+        except ValueError:
+            feedback = "Please enter a valid number!"
+
+    return render_template_string(game_template, feedback=feedback, attempts=attempts, guessed_correctly=guessed_correctly)
 
 game_template = """
 <!DOCTYPE html>
